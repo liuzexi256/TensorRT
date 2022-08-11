@@ -2,7 +2,7 @@
  * @Author: Zexi Liu
  * @Date: 2022-07-29 11:45:47
  * @LastEditors: Zexi Liu
- * @LastEditTime: 2022-08-10 15:03:38
+ * @LastEditTime: 2022-08-11 19:16:58
  * @FilePath: /TensorRT/plugin/scatterMaxPlugin/scatterMaxPlugin.cpp
  * @Description: 
  * 
@@ -204,6 +204,7 @@ const PluginFieldCollection* ScatterMaxPluginCreator::getFieldNames() noexcept
 
 IPluginV2Ext* ScatterMaxPluginCreator::createPlugin(const char* name, const PluginFieldCollection* fc) noexcept
 {
+    std::cout << "1111111111111" << std::endl;
     try
     {
         const PluginField* fields = fc->fields;

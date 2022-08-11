@@ -2,7 +2,7 @@
  * @Author: Zexi Liu
  * @Date: 2022-07-29 11:45:47
  * @LastEditors: Zexi Liu
- * @LastEditTime: 2022-08-10 13:47:50
+ * @LastEditTime: 2022-08-11 19:21:49
  * @FilePath: /TensorRT/plugin/gather4DPlugin/gather4DPlugin.cpp
  * @Description: 
  * 
@@ -33,9 +33,9 @@ std::vector<PluginField> Gather4DPluginCreator::mPluginAttributes;
 
 //REGISTER_TENSORRT_PLUGIN(PillarsScatterPluginCreator);
 
-Gather4DPlugin::Gather4DPlugin()
-    // : _size_w(w)
-    // , _size_h(h)
+Gather4DPlugin::Gather4DPlugin(int w, int h)
+    : _size_w(w)
+    , _size_h(h)
 {
 
 }
@@ -47,8 +47,8 @@ void Gather4DPlugin::deserialize(void const* serialData, size_t serialLength) no
     // deserialize_value(&serialData, &serialLength, &_data_type);
     // deserialize_value(&serialData, &serialLength, &_data_format);
     //deserialize_value(&serialData, &serialLength, &_op_type);
-    // deserialize_value(&serialData, &serialLength, &_size_w);
-    // deserialize_value(&serialData, &serialLength, &_size_h);
+    deserialize_value(&serialData, &serialLength, &_size_w);
+    deserialize_value(&serialData, &serialLength, &_size_h);
 
 }
 
@@ -65,9 +65,9 @@ size_t Gather4DPlugin::getSerializationSize() const noexcept
                     // + serialized_size(_data_type) 
                     // + serialized_size(_data_format);
 
-    //ret_size = ret_size + serialized_size(_size_w);
-    // size_t ret_size = serialized_size(_size_w) + serialized_size(_size_h);
-    // return ret_size;
+    // ret_size = ret_size + serialized_size(_size_w);
+    size_t ret_size = serialized_size(_size_w) + serialized_size(_size_h);
+    return ret_size;
 }
 
 void Gather4DPlugin::serialize(void *buffer) const noexcept
@@ -157,7 +157,7 @@ void Gather4DPlugin::destroy() noexcept
 
 IPluginV2DynamicExt* Gather4DPlugin::clone() const noexcept
 {
-    auto* plugin = new Gather4DPlugin();
+    auto* plugin = new Gather4DPlugin(_size_w, _size_h);
     plugin->setPluginNamespace(mPluginNamespace);
     return plugin;
 }
@@ -200,12 +200,16 @@ const PluginFieldCollection* Gather4DPluginCreator::getFieldNames() noexcept
 
 IPluginV2Ext* Gather4DPluginCreator::createPlugin(const char* name, const PluginFieldCollection* fc) noexcept
 {
+    std::cout << "33333333333" << std::endl;
+    w = 1000;
+    h = 1000;
+
     try
     {
         const PluginField* fields = fc->fields;
         int nbFields = fc->nbFields;
 
-        Gather4DPlugin* plugin = new Gather4DPlugin();
+        Gather4DPlugin* plugin = new Gather4DPlugin(w, h);
         plugin->setPluginNamespace(mNamespace.c_str());
         return plugin;
     }

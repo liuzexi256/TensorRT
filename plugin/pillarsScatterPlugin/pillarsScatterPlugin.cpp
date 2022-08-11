@@ -2,7 +2,7 @@
  * @Author: Zexi Liu
  * @Date: 2022-07-29 11:45:47
  * @LastEditors: Zexi Liu
- * @LastEditTime: 2022-08-08 17:14:04
+ * @LastEditTime: 2022-08-11 19:16:51
  * @FilePath: /TensorRT/plugin/pillarsScatterPlugin/pillarsScatterPlugin.cpp
  * @Description: 
  * 
@@ -201,6 +201,7 @@ const PluginFieldCollection* PillarsScatterPluginCreator::getFieldNames() noexce
 
 IPluginV2Ext* PillarsScatterPluginCreator::createPlugin(const char* name, const PluginFieldCollection* fc) noexcept
 {
+    std::cout << "222222222222" << std::endl;
     try
     {
         const PluginField* fields = fc->fields;

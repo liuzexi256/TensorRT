@@ -19,7 +19,7 @@ public:
 
     const char* mPluginNamespace;
 
-    Gather4DPlugin();
+    Gather4DPlugin(int w, int h);
 
     Gather4DPlugin(const void* serialData, size_t serialLength);
 
@@ -67,6 +67,10 @@ public:
 
 private:
     std::string mNameSpace;
+    int w;
+    int h;
+    int _size_w;
+    int _size_h;
 };
 
 class Gather4DPluginCreator : public BaseCreator
@@ -90,6 +94,10 @@ private:
     static PluginFieldCollection mFC;
     static std::vector<PluginField> mPluginAttributes;
     std::string mNamespace;
+    int w;
+    int h;
+    int _size_w;
+    int _size_h;
 };
 } // namespace plugin
 } // namespace nvinfer1

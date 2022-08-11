@@ -58,9 +58,9 @@ void scatter_max_kernel_f32(
             const int nChans,
             Data* odata)
 {
-  Data const *feat_array = &idata1[batchSize * nDims * nChans * blockIdx.z];
-  Data const *index_array = &idata2[batchSize * nDims * blockIdx.z];
-  Data *scatter_array = &odata[batchSize * nDims * nChans * blockIdx.z];
+  Data const *feat_array = &idata1[nDims * nChans * blockIdx.z];
+  Data const *index_array = &idata2[nDims * blockIdx.z];
+  Data *scatter_array = &odata[nDims * nChans * blockIdx.z];
   const int tid = blockIdx.x * blockDim.x + threadIdx.x;
   const int stride = gridDim.x * blockDim.x;
   for (int index = tid; index < nDims; index += stride)
