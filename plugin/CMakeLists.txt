@@ -57,6 +57,9 @@ set(PLUGIN_LISTS
     scatterPlugin
     specialSlicePlugin
     splitPlugin
+    scatterMaxPlugin
+    pillarsScatterPlugin
+    gather4DPlugin
     )
 
 # Add BERT sources if ${BERT_GENCODES} was populated

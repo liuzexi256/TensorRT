@@ -54,6 +54,9 @@ using namespace nvinfer1::plugin;
 #include "specialSlicePlugin.h"
 #include "split.h"
 #include "scatterPlugin.h"
+#include "scatterMaxPlugin.h"
+#include "pillarsScatterPlugin.h"
+#include "gather4DPlugin.h"
 
 using nvinfer1::plugin::RPROIParams;
 
@@ -195,6 +198,9 @@ extern "C"
         initializePlugin<nvinfer1::plugin::ScatterNDPluginCreator>(logger, libNamespace);
         initializePlugin<nvinfer1::plugin::SpecialSlicePluginCreator>(logger, libNamespace);
         initializePlugin<nvinfer1::plugin::SplitPluginCreator>(logger, libNamespace);
+        initializePlugin<nvinfer1::plugin::ScatterMaxPluginCreator>(logger, libNamespace);
+        initializePlugin<nvinfer1::plugin::PillarsScatterPluginCreator>(logger, libNamespace);
+        initializePlugin<nvinfer1::plugin::Gather4DPluginCreator>(logger, libNamespace);
         return true;
     }
 } // extern "C"
