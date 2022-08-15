@@ -33,8 +33,6 @@ void pillar_scatter_kernel(
   Data const *feat_array = &idata1[nDims * nChans * blockIdx.z];
   Data const *index_array = &idata2[nDims * 4 * blockIdx.z];
   Data *output_array = &odata[output_size * blockIdx.z];
-  // printf("a = %4f\n", feat_array[0]);
-  // printf("b = %4f\n", index_array[0]);
   const int tid = blockIdx.x * blockDim.x + threadIdx.x;
   const int stride = gridDim.x * blockDim.x;
 
@@ -47,6 +45,7 @@ void pillar_scatter_kernel(
       int y = (int)index_array[index * 4 + 3];
       int odata_index = c * _size_h * _size_w + x * _size_w + y;
       output_array[odata_index] = feat_array[feature_index];
+      //printf("a = %4f\n", output_array[odata_index]);
     }
   }
 }
@@ -54,20 +53,20 @@ void pillar_scatter_kernel(
 int PillarsScatterPlugin::enqueue(const nvinfer1::PluginTensorDesc* inputDesc, const nvinfer1::PluginTensorDesc* outputDesc,
                          const void* const* inputs, void* const* outputs, void* workspace, cudaStream_t stream) noexcept
 {
-  std::cout << "start enqueue pillars scatter" << std::endl;
-  std::cout << "input0.shape0 = " << inputDesc[0].dims.d[0] << std::endl;
-  std::cout << "input0.shape1 = " << inputDesc[0].dims.d[1] << std::endl;
-  std::cout << "input0.shape2 = " << inputDesc[0].dims.d[2] << std::endl;
-  std::cout << "input1.shape0 = " << inputDesc[1].dims.d[0] << std::endl;
-  std::cout << "input1.shape1 = " << inputDesc[1].dims.d[1] << std::endl;
-  std::cout << "input1.shape2 = " << inputDesc[1].dims.d[2] << std::endl;
+  // std::cout << "start enqueue pillars scatter" << std::endl;
+  // std::cout << "input0.shape0 = " << inputDesc[0].dims.d[0] << std::endl;
+  // std::cout << "input0.shape1 = " << inputDesc[0].dims.d[1] << std::endl;
+  // std::cout << "input0.shape2 = " << inputDesc[0].dims.d[2] << std::endl;
+  // std::cout << "input1.shape0 = " << inputDesc[1].dims.d[0] << std::endl;
+  // std::cout << "input1.shape1 = " << inputDesc[1].dims.d[1] << std::endl;
+  // std::cout << "input1.shape2 = " << inputDesc[1].dims.d[2] << std::endl;
   auto const& input0_dims = inputDesc[0].dims;
 
   int in_feature_dims = input0_dims.d[1];
   int in_channel = input0_dims.d[2];
   const dim3 phnetDim3(512, 1, inputDesc[0].dims.d[0]);
 
-  if (nvinfer1::DataType::kFLOAT == nvinfer1::DataType::kFLOAT)
+  if (inputDesc[0].type == nvinfer1::DataType::kFLOAT)
   {
     cudaMemsetAsync(outputs[0], 0xFF, sizeof(float) * in_feature_dims * in_channel, stream);
     pillar_scatter_kernel<<<2, phnetDim3, 0, stream>>>
@@ -97,8 +96,6 @@ int PillarsScatterPlugin::enqueue(const nvinfer1::PluginTensorDesc* inputDesc, c
       _size_w
     );
   }
-  std::cout << "cuda error pillars scatter: " << cudaGetLastError() << std::endl;
-  std::cout << "end enqueue pillars scatter" << std::endl;
   return cudaGetLastError() != cudaSuccess;
 }
 ///// PillarScatter Enqueue end

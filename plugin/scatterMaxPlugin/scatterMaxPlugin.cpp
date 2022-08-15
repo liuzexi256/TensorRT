@@ -2,7 +2,7 @@
  * @Author: Zexi Liu
  * @Date: 2022-07-29 11:45:47
  * @LastEditors: Zexi Liu
- * @LastEditTime: 2022-08-11 19:16:58
+ * @LastEditTime: 2022-08-12 18:18:01
  * @FilePath: /TensorRT/plugin/scatterMaxPlugin/scatterMaxPlugin.cpp
  * @Description: 
  * 
@@ -55,17 +55,6 @@ void ScatterMaxPlugin::deserialize(void const* serialData, size_t serialLength) 
 ScatterMaxPlugin::ScatterMaxPlugin(void const* serialData, size_t serialLength)
 {
     this->deserialize(serialData, serialLength);
-    // const char *d = reinterpret_cast<const char*>(serialData), *a = d;
-    // w = read<int>(d);
-    // mInputDims = Dims3();
-    // mInputDims.d[0] = read<int>(d);
-    // mInputDims.d[1] = read<int>(d);
-    // mInputDims.d[2] = read<int>(d);
-    // mOutputDims = Dims3();
-    // mOutputDims.d[0] = read<int>(d);
-    // mOutputDims.d[1] = read<int>(d);
-    // mOutputDims.d[2] = read<int>(d);
-    // ASSERT(d == a + serialLength);
 }
 
 size_t ScatterMaxPlugin::getSerializationSize() const noexcept
