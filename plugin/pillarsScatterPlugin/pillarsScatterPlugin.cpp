@@ -2,7 +2,7 @@
  * @Author: Zexi Liu
  * @Date: 2022-07-29 11:45:47
  * @LastEditors: Zexi Liu
- * @LastEditTime: 2022-08-11 19:16:51
+ * @LastEditTime: 2022-08-16 13:42:03
  * @FilePath: /TensorRT/plugin/pillarsScatterPlugin/pillarsScatterPlugin.cpp
  * @Description: 
  * 
@@ -42,11 +42,6 @@ PillarsScatterPlugin::PillarsScatterPlugin(int w, int h)
 
 void PillarsScatterPlugin::deserialize(void const* serialData, size_t serialLength) noexcept
 {
-    // deserialize_value(&serialData, &serialLength, &_input_dims);
-    // deserialize_value(&serialData, &serialLength, &_max_batch_size);
-    // deserialize_value(&serialData, &serialLength, &_data_type);
-    // deserialize_value(&serialData, &serialLength, &_data_format);
-    //deserialize_value(&serialData, &serialLength, &_op_type);
     deserialize_value(&serialData, &serialLength, &_size_w);
     deserialize_value(&serialData, &serialLength, &_size_h);
 
@@ -59,25 +54,12 @@ PillarsScatterPlugin::PillarsScatterPlugin(void const* serialData, size_t serial
 
 size_t PillarsScatterPlugin::getSerializationSize() const noexcept
 {
-    //size_t ret_size = serialized_size(_op_type);
-                    // + serialized_size(_input_dims) 
-                    // + serialized_size(_max_batch_size) 
-                    // + serialized_size(_data_type) 
-                    // + serialized_size(_data_format);
-
-    //ret_size = ret_size + serialized_size(_size_w);
     size_t ret_size = serialized_size(_size_w) + serialized_size(_size_h);
     return ret_size;
 }
 
 void PillarsScatterPlugin::serialize(void *buffer) const noexcept
 {
-    // serialize_value(&buffer, _input_dims);
-    // serialize_value(&buffer, _max_batch_size);
-    // serialize_value(&buffer, _data_type);
-    // serialize_value(&buffer, _data_format);
-
-    //serialize_value(&buffer, (int)_op_type);
     serialize_value(&buffer, (int)_size_w);
     serialize_value(&buffer, (int)_size_h);
 }
@@ -90,13 +72,6 @@ int PillarsScatterPlugin::getNbOutputs() const noexcept
 nvinfer1::DimsExprs PillarsScatterPlugin::getOutputDimensions(
     int index, const nvinfer1::DimsExprs* inputs, int nbInputs, nvinfer1::IExprBuilder& exprBuilder) noexcept
 {
-    // nvinfer1::DimsExprs output;
-
-    // nvinfer1::DimsExprs const& input = inputs[0];
-    // output.nbDims = 2;
-    // output.d[0] = _size_w;
-    // output.d[1] = input.d[1];
-    // nvinfer1::DimsExprs output(inputs[0]);
     DimsExprs output;
     output.nbDims = 4;
     output.d[0] = inputs[0].d[0];
@@ -122,16 +97,9 @@ size_t PillarsScatterPlugin::getWorkspaceSize(const nvinfer1::PluginTensorDesc* 
 void PillarsScatterPlugin::configurePlugin(const nvinfer1::DynamicPluginTensorDesc* in, int nbInputs,
     const nvinfer1::DynamicPluginTensorDesc* out, int nbOutputs) noexcept
 {
-//   assert(nbOutputs == 1);
-//   assert(nbInputs == 3);
-//   assert(mType == inputs[0].desc.type);
+
 }
 
-// bool ScatterMaxPlugin::supportsFormat(DataType type,
-//                                       PluginFormat format) const noexcept{
-//   return (type == DataType::kFLOAT ||
-//                   type == DataType::kHALF);
-// }
 
 bool PillarsScatterPlugin::supportsFormatCombination(
     int pos, const nvinfer1::PluginTensorDesc* inOut, int nbInputs, int nbOutputs) noexcept
@@ -201,7 +169,6 @@ const PluginFieldCollection* PillarsScatterPluginCreator::getFieldNames() noexce
 
 IPluginV2Ext* PillarsScatterPluginCreator::createPlugin(const char* name, const PluginFieldCollection* fc) noexcept
 {
-    std::cout << "222222222222" << std::endl;
     try
     {
         const PluginField* fields = fc->fields;

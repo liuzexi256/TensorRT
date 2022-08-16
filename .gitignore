@@ -9,3 +9,4 @@ build/
 externals/
 TensorRT-8.0.1.6/
 .vscode/
+*.trt

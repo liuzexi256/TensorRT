@@ -6,16 +6,6 @@
 using namespace nvinfer1;
 using nvinfer1::plugin::PillarsScatterPlugin;
 
-__device__ __forceinline__
-float atomicMaxFloat(float * addr, float value)
-{
-    float old = (value >= 0) ?
-        __int_as_float(atomicMax((int *)addr, __float_as_int(value))) :
-        __uint_as_float(atomicMin((unsigned int *)addr, __float_as_uint(value)));
-
-    return old;
-}
-
 ///// PillarScatter Enqueue start
 template <typename Data>
 __global__
@@ -45,7 +35,6 @@ void pillar_scatter_kernel(
       int y = (int)index_array[index * 4 + 3];
       int odata_index = c * _size_h * _size_w + x * _size_w + y;
       output_array[odata_index] = feat_array[feature_index];
-      //printf("a = %4f\n", output_array[odata_index]);
     }
   }
 }

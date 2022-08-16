@@ -6,17 +6,6 @@
 using namespace nvinfer1;
 using nvinfer1::plugin::Gather4DPlugin;
 
-__device__ __forceinline__
-float atomicMaxFloat(float * addr, float value)
-{
-    float old = (value >= 0) ?
-        __int_as_float(atomicMax((int *)addr, __float_as_int(value))) :
-        __uint_as_float(atomicMin((unsigned int *)addr, __float_as_uint(value)));
-
-    return old;
-}
-
-
 ///// Gather4D Enqueue start
 template <typename Data>
 __global__

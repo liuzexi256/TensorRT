@@ -2,7 +2,7 @@
  * @Author: Zexi Liu
  * @Date: 2022-07-29 11:45:47
  * @LastEditors: Zexi Liu
- * @LastEditTime: 2022-08-12 18:18:01
+ * @LastEditTime: 2022-08-16 13:40:47
  * @FilePath: /TensorRT/plugin/scatterMaxPlugin/scatterMaxPlugin.cpp
  * @Description: 
  * 
@@ -43,13 +43,7 @@ ScatterMaxPlugin::ScatterMaxPlugin(int w)
 
 void ScatterMaxPlugin::deserialize(void const* serialData, size_t serialLength) noexcept
 {
-    // deserialize_value(&serialData, &serialLength, &_input_dims);
-    // deserialize_value(&serialData, &serialLength, &_max_batch_size);
-    // deserialize_value(&serialData, &serialLength, &_data_type);
-    // deserialize_value(&serialData, &serialLength, &_data_format);
-    //deserialize_value(&serialData, &serialLength, &_op_type);
     deserialize_value(&serialData, &serialLength, &_size_w);
-
 }
 
 ScatterMaxPlugin::ScatterMaxPlugin(void const* serialData, size_t serialLength)
@@ -59,25 +53,12 @@ ScatterMaxPlugin::ScatterMaxPlugin(void const* serialData, size_t serialLength)
 
 size_t ScatterMaxPlugin::getSerializationSize() const noexcept
 {
-    //size_t ret_size = serialized_size(_op_type);
-                    // + serialized_size(_input_dims) 
-                    // + serialized_size(_max_batch_size) 
-                    // + serialized_size(_data_type) 
-                    // + serialized_size(_data_format);
-
-    //ret_size = ret_size + serialized_size(_size_w);
     size_t ret_size = serialized_size(_size_w);
     return ret_size;
 }
 
 void ScatterMaxPlugin::serialize(void *buffer) const noexcept
 {
-    // serialize_value(&buffer, _input_dims);
-    // serialize_value(&buffer, _max_batch_size);
-    // serialize_value(&buffer, _data_type);
-    // serialize_value(&buffer, _data_format);
-
-    //serialize_value(&buffer, (int)_op_type);
     serialize_value(&buffer, (int)_size_w);
 }
 
@@ -89,7 +70,6 @@ int ScatterMaxPlugin::getNbOutputs() const noexcept
 nvinfer1::DimsExprs ScatterMaxPlugin::getOutputDimensions(
     int index, const nvinfer1::DimsExprs* inputs, int nbInputs, nvinfer1::IExprBuilder& exprBuilder) noexcept
 {
-    //std::cout << "wwwwwwwwww" << _size_w << std::endl;
     DimsExprs output;
     output.nbDims = 3;
     output.d[0] = inputs[0].d[0];
@@ -118,12 +98,6 @@ void ScatterMaxPlugin::configurePlugin(const nvinfer1::DynamicPluginTensorDesc* 
 //   assert(nbInputs == 3);
 //   assert(mType == inputs[0].desc.type);
 }
-
-// bool ScatterMaxPlugin::supportsFormat(DataType type,
-//                                       PluginFormat format) const noexcept{
-//   return (type == DataType::kFLOAT ||
-//                   type == DataType::kHALF);
-// }
 
 bool ScatterMaxPlugin::supportsFormatCombination(
     int pos, const nvinfer1::PluginTensorDesc* inOut, int nbInputs, int nbOutputs) noexcept
@@ -193,7 +167,6 @@ const PluginFieldCollection* ScatterMaxPluginCreator::getFieldNames() noexcept
 
 IPluginV2Ext* ScatterMaxPluginCreator::createPlugin(const char* name, const PluginFieldCollection* fc) noexcept
 {
-    std::cout << "1111111111111" << std::endl;
     try
     {
         const PluginField* fields = fc->fields;

@@ -67,10 +67,6 @@ public:
 
     const char* getPluginNamespace() const noexcept override;
 
-    // bool isOutputBroadcastAcrossBatch(int outputIndex, const bool* inputIsBroadcasted, int nbInputs) const noexcept override;
-
-    // bool canBroadcastInputAcrossBatch(int inputIndex) const noexcept override;
-
 private:
     int w;
     std::string mNameSpace;

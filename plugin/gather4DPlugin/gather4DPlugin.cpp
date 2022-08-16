@@ -2,7 +2,7 @@
  * @Author: Zexi Liu
  * @Date: 2022-07-29 11:45:47
  * @LastEditors: Zexi Liu
- * @LastEditTime: 2022-08-11 19:21:49
+ * @LastEditTime: 2022-08-16 18:38:42
  * @FilePath: /TensorRT/plugin/gather4DPlugin/gather4DPlugin.cpp
  * @Description: 
  * 
@@ -33,22 +33,13 @@ std::vector<PluginField> Gather4DPluginCreator::mPluginAttributes;
 
 //REGISTER_TENSORRT_PLUGIN(PillarsScatterPluginCreator);
 
-Gather4DPlugin::Gather4DPlugin(int w, int h)
-    : _size_w(w)
-    , _size_h(h)
+Gather4DPlugin::Gather4DPlugin()
 {
 
 }
 
 void Gather4DPlugin::deserialize(void const* serialData, size_t serialLength) noexcept
 {
-    // deserialize_value(&serialData, &serialLength, &_input_dims);
-    // deserialize_value(&serialData, &serialLength, &_max_batch_size);
-    // deserialize_value(&serialData, &serialLength, &_data_type);
-    // deserialize_value(&serialData, &serialLength, &_data_format);
-    //deserialize_value(&serialData, &serialLength, &_op_type);
-    deserialize_value(&serialData, &serialLength, &_size_w);
-    deserialize_value(&serialData, &serialLength, &_size_h);
 
 }
 
@@ -59,27 +50,12 @@ Gather4DPlugin::Gather4DPlugin(void const* serialData, size_t serialLength)
 
 size_t Gather4DPlugin::getSerializationSize() const noexcept
 {
-    //size_t ret_size = serialized_size(_op_type);
-                    // + serialized_size(_input_dims) 
-                    // + serialized_size(_max_batch_size) 
-                    // + serialized_size(_data_type) 
-                    // + serialized_size(_data_format);
-
-    // ret_size = ret_size + serialized_size(_size_w);
-    size_t ret_size = serialized_size(_size_w) + serialized_size(_size_h);
-    return ret_size;
+    return 0;
 }
 
 void Gather4DPlugin::serialize(void *buffer) const noexcept
 {
-    // serialize_value(&buffer, _input_dims);
-    // serialize_value(&buffer, _max_batch_size);
-    // serialize_value(&buffer, _data_type);
-    // serialize_value(&buffer, _data_format);
 
-    //serialize_value(&buffer, (int)_op_type);
-    // serialize_value(&buffer, (int)_size_w);
-    // serialize_value(&buffer, (int)_size_h);
 }
 
 int Gather4DPlugin::getNbOutputs() const noexcept
@@ -90,13 +66,6 @@ int Gather4DPlugin::getNbOutputs() const noexcept
 nvinfer1::DimsExprs Gather4DPlugin::getOutputDimensions(
     int index, const nvinfer1::DimsExprs* inputs, int nbInputs, nvinfer1::IExprBuilder& exprBuilder) noexcept
 {
-    // nvinfer1::DimsExprs output;
-
-    // nvinfer1::DimsExprs const& input = inputs[0];
-    // output.nbDims = 2;
-    // output.d[0] = _size_w;
-    // output.d[1] = input.d[1];
-    // nvinfer1::DimsExprs output(inputs[0]);
     DimsExprs output;
     output.nbDims = 3;
     output.d[0] = inputs[0].d[0];
@@ -126,12 +95,6 @@ void Gather4DPlugin::configurePlugin(const nvinfer1::DynamicPluginTensorDesc* in
 //   assert(mType == inputs[0].desc.type);
 }
 
-// bool ScatterMaxPlugin::supportsFormat(DataType type,
-//                                       PluginFormat format) const noexcept{
-//   return (type == DataType::kFLOAT ||
-//                   type == DataType::kHALF);
-// }
-
 bool Gather4DPlugin::supportsFormatCombination(
     int pos, const nvinfer1::PluginTensorDesc* inOut, int nbInputs, int nbOutputs) noexcept
 {
@@ -157,7 +120,7 @@ void Gather4DPlugin::destroy() noexcept
 
 IPluginV2DynamicExt* Gather4DPlugin::clone() const noexcept
 {
-    auto* plugin = new Gather4DPlugin(_size_w, _size_h);
+    auto* plugin = new Gather4DPlugin();
     plugin->setPluginNamespace(mPluginNamespace);
     return plugin;
 }
@@ -200,16 +163,12 @@ const PluginFieldCollection* Gather4DPluginCreator::getFieldNames() noexcept
 
 IPluginV2Ext* Gather4DPluginCreator::createPlugin(const char* name, const PluginFieldCollection* fc) noexcept
 {
-    std::cout << "33333333333" << std::endl;
-    w = 1000;
-    h = 1000;
-
     try
     {
         const PluginField* fields = fc->fields;
         int nbFields = fc->nbFields;
 
-        Gather4DPlugin* plugin = new Gather4DPlugin(w, h);
+        Gather4DPlugin* plugin = new Gather4DPlugin();
         plugin->setPluginNamespace(mNamespace.c_str());
         return plugin;
     }
