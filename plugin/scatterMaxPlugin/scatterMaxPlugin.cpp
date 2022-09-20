@@ -2,7 +2,7 @@
  * @Author: Zexi Liu
  * @Date: 2022-07-29 11:45:47
  * @LastEditors: Zexi Liu
- * @LastEditTime: 2022-08-16 13:40:47
+ * @LastEditTime: 2022-09-20 17:06:18
  * @FilePath: /TensorRT/plugin/scatterMaxPlugin/scatterMaxPlugin.cpp
  * @Description: 
  * 
@@ -10,12 +10,9 @@
  */
 
 #include "scatterMaxPlugin.h"
-#include "half.h"
 #include <cstring>
-#include <cublas_v2.h>
-#include <cudnn.h>
 #include <iostream>
-#include <sstream>
+#include <vector>
 
 using namespace nvinfer1;
 using namespace plugin;
@@ -33,49 +30,25 @@ std::vector<PluginField> ScatterMaxPluginCreator::mPluginAttributes;
 
 //REGISTER_TENSORRT_PLUGIN(ScatterMaxPluginCreator);
 
-//ScatterMaxPlugin::ScatterMaxPlugin() {}
+ScatterMaxPlugin::ScatterMaxPlugin() {}
 
-ScatterMaxPlugin::ScatterMaxPlugin(int w)
-    : _size_w(w)
+ScatterMaxPlugin::ScatterMaxPlugin(int w, int nChans, int nDims)
+    : w(w)
+    , nChans(nChans)
+    , nDims(nDims)
 {
-
 }
 
-void ScatterMaxPlugin::deserialize(void const* serialData, size_t serialLength) noexcept
+ScatterMaxPlugin::ScatterMaxPlugin(void const* data, size_t length)
 {
-    deserialize_value(&serialData, &serialLength, &_size_w);
-}
-
-ScatterMaxPlugin::ScatterMaxPlugin(void const* serialData, size_t serialLength)
-{
-    this->deserialize(serialData, serialLength);
-}
-
-size_t ScatterMaxPlugin::getSerializationSize() const noexcept
-{
-    size_t ret_size = serialized_size(_size_w);
-    return ret_size;
-}
-
-void ScatterMaxPlugin::serialize(void *buffer) const noexcept
-{
-    serialize_value(&buffer, (int)_size_w);
+    deserialize_value(&data, &length, &w);
+    deserialize_value(&data, &length, &nChans);
+    deserialize_value(&data, &length, &nDims);
 }
 
 int ScatterMaxPlugin::getNbOutputs() const noexcept
 {
     return 1;
-}
-
-nvinfer1::DimsExprs ScatterMaxPlugin::getOutputDimensions(
-    int index, const nvinfer1::DimsExprs* inputs, int nbInputs, nvinfer1::IExprBuilder& exprBuilder) noexcept
-{
-    DimsExprs output;
-    output.nbDims = 3;
-    output.d[0] = inputs[0].d[0];
-    output.d[1] = exprBuilder.constant(_size_w);
-    output.d[2] = inputs[0].d[2];
-    return output;
 }
 
 int ScatterMaxPlugin::initialize() noexcept
@@ -85,26 +58,47 @@ int ScatterMaxPlugin::initialize() noexcept
 
 void ScatterMaxPlugin::terminate() noexcept {}
 
-size_t ScatterMaxPlugin::getWorkspaceSize(const nvinfer1::PluginTensorDesc* inputs, int nbInputs,
-    const nvinfer1::PluginTensorDesc* outputs, int nbOutputs) const noexcept
+Dims ScatterMaxPlugin::getOutputDimensions(int index, const Dims* inputs, int nbInputDims) noexcept
+{
+    Dims output;
+    output.nbDims = 2;
+    output.d[0] = w;
+    output.d[1] = inputs[0].d[1];
+    return output;
+}
+
+size_t ScatterMaxPlugin::getWorkspaceSize(int maxBatchSize) const noexcept
 {
     return 0;
 }
 
-void ScatterMaxPlugin::configurePlugin(const nvinfer1::DynamicPluginTensorDesc* in, int nbInputs,
-    const nvinfer1::DynamicPluginTensorDesc* out, int nbOutputs) noexcept
+
+
+size_t ScatterMaxPlugin::getSerializationSize() const noexcept
 {
-//   assert(nbOutputs == 1);
-//   assert(nbInputs == 3);
+    return 3 * sizeof(int);
+}
+
+void ScatterMaxPlugin::serialize(void* buffer) const noexcept
+{
+    serialize_value(&buffer, w);
+    serialize_value(&buffer, nChans);
+    serialize_value(&buffer, nDims);
+}
+
+void ScatterMaxPlugin::configurePlugin(const Dims* inputDims, int nbInputs, const Dims* outputDims, int nbOutputs,
+    const DataType* inputTypes, const DataType* outputTypes, const bool* inputIsBroadcast,
+    const bool* outputIsBroadcast, nvinfer1::PluginFormat format, int maxBatchSize) noexcept
+{
+    assert(nbInputs == 2);
+    assert(nbOutputs == 1);
+
 //   assert(mType == inputs[0].desc.type);
 }
 
-bool ScatterMaxPlugin::supportsFormatCombination(
-    int pos, const nvinfer1::PluginTensorDesc* inOut, int nbInputs, int nbOutputs) noexcept
+bool ScatterMaxPlugin::supportsFormat(DataType type, PluginFormat format) const noexcept
 {
-    assert(inOut && pos < (nbInputs + nbOutputs));
-    return ((inOut[pos].type == nvinfer1::DataType::kFLOAT) && inOut[pos].format == nvinfer1::PluginFormat::kLINEAR
-        && inOut[pos].type == inOut[0].type);
+    return ((type == DataType::kHALF || type == DataType::kFLOAT) && format == PluginFormat::kLINEAR);
 }
 
 const char* ScatterMaxPlugin::getPluginType() const noexcept
@@ -122,11 +116,23 @@ void ScatterMaxPlugin::destroy() noexcept
     delete this;
 }
 
-IPluginV2DynamicExt* ScatterMaxPlugin::clone() const noexcept
+IPluginV2Ext* ScatterMaxPlugin::clone() const noexcept
 {
-    auto* plugin = new ScatterMaxPlugin(_size_w);
-    plugin->setPluginNamespace(mPluginNamespace);
+    ScatterMaxPlugin* plugin = new ScatterMaxPlugin(w, nChans, nDims);
+    plugin->setPluginNamespace(mNameSpace.c_str());
     return plugin;
+}
+
+void ScatterMaxPlugin::setPluginNamespace(const char* pluginNamespace) noexcept
+{
+    mPluginNamespace = pluginNamespace;
+    mPluginNamespace = "";
+}
+
+const char* ScatterMaxPlugin::getPluginNamespace() const noexcept
+{
+    std::cout << "mPluginNamespace: " << mPluginNamespace << std::endl;
+    return mPluginNamespace;
 }
 
 nvinfer1::DataType ScatterMaxPlugin::getOutputDataType(
@@ -135,19 +141,23 @@ nvinfer1::DataType ScatterMaxPlugin::getOutputDataType(
     return inputTypes[0];
 }
 
-void ScatterMaxPlugin::setPluginNamespace(const char* pluginNamespace) noexcept
+bool ScatterMaxPlugin::isOutputBroadcastAcrossBatch(int outputIndex, const bool* inputIsBroadcasted, int nbInputs) const noexcept
 {
-    mPluginNamespace = pluginNamespace;
+    return false;
 }
 
-const char* ScatterMaxPlugin::getPluginNamespace() const noexcept
+bool ScatterMaxPlugin::canBroadcastInputAcrossBatch(int inputIndex) const noexcept
 {
-    return mPluginNamespace;
+    return false;
 }
 
 ScatterMaxPluginCreator::ScatterMaxPluginCreator()
 {
-    mFC.nbFields = 0;
+    mPluginAttributes.clear();
+    mPluginAttributes.emplace_back(PluginField("w", nullptr, PluginFieldType::kINT32, 1));
+
+    mFC.nbFields = mPluginAttributes.size();
+    mFC.fields = mPluginAttributes.data();
 }
 
 const char* ScatterMaxPluginCreator::getPluginName() const noexcept
@@ -167,33 +177,38 @@ const PluginFieldCollection* ScatterMaxPluginCreator::getFieldNames() noexcept
 
 IPluginV2Ext* ScatterMaxPluginCreator::createPlugin(const char* name, const PluginFieldCollection* fc) noexcept
 {
-    try
+    const PluginField* fields = fc->fields;
+    int nbFields = fc->nbFields;
+    int w = 0;
+    int nChans = 0;
+    int nDims = 0;
+    for (int i = 0; i < nbFields; ++i)
     {
-        const PluginField* fields = fc->fields;
-        int nbFields = fc->nbFields;
-
-        for (int i = 0; i < nbFields; ++i)
+        if (!strcmp(fields[i].name, "w"))
         {
-            if (!strcmp(fields[i].name, "w"))
-            {
-                w = *(reinterpret_cast<const int*>(fields[i].data));
-                std::cout << "w: " << w << std::endl;
-            }
+            assert(fields[i].type == PluginFieldType::kINT32);
+            w = *(static_cast<const int*>(fields[i].data));
+            std::cout << "w: " << w << std::endl;
         }
-        ScatterMaxPlugin* plugin = new ScatterMaxPlugin(w);
-        plugin->setPluginNamespace(mNamespace.c_str());
-        return plugin;
+        if (!strcmp(fields[i].name, "nChans"))
+        {
+            assert(fields[i].type == PluginFieldType::kINT32);
+            nChans = *(static_cast<const int*>(fields[i].data));
+            std::cout << "nChans: " << nChans << std::endl;
+        }
+        if (!strcmp(fields[i].name, "nDims"))
+        {
+            assert(fields[i].type == PluginFieldType::kINT32);
+            nDims = *(static_cast<const int*>(fields[i].data));
+            std::cout << "nDims: " << nDims << std::endl;
+        }
     }
-    catch (const std::exception& e)
-    {
-        caughtError(e);
-    }
-    return nullptr;
+    return new ScatterMaxPlugin(w, nChans, nDims);
 }
 
-IPluginV2Ext* ScatterMaxPluginCreator::deserializePlugin(const char* name, const void* serialData, size_t serialLength) noexcept
+IPluginV2Ext* ScatterMaxPluginCreator::deserializePlugin(const char* name, const void* data, size_t length) noexcept
 {
-    ScatterMaxPlugin* plugin = new ScatterMaxPlugin(serialData, serialLength);
+    ScatterMaxPlugin* plugin =  new ScatterMaxPlugin(data, length);
     plugin->setPluginNamespace(mNamespace.c_str());
     return plugin;
 }

@@ -39,35 +39,29 @@ void pillar_scatter_kernel(
   }
 }
 
-int PillarsScatterPlugin::enqueue(const nvinfer1::PluginTensorDesc* inputDesc, const nvinfer1::PluginTensorDesc* outputDesc,
-                         const void* const* inputs, void* const* outputs, void* workspace, cudaStream_t stream) noexcept
-{
-  // std::cout << "start enqueue pillars scatter" << std::endl;
-  // std::cout << "input0.shape0 = " << inputDesc[0].dims.d[0] << std::endl;
-  // std::cout << "input0.shape1 = " << inputDesc[0].dims.d[1] << std::endl;
-  // std::cout << "input0.shape2 = " << inputDesc[0].dims.d[2] << std::endl;
-  // std::cout << "input1.shape0 = " << inputDesc[1].dims.d[0] << std::endl;
-  // std::cout << "input1.shape1 = " << inputDesc[1].dims.d[1] << std::endl;
-  // std::cout << "input1.shape2 = " << inputDesc[1].dims.d[2] << std::endl;
-  auto const& input0_dims = inputDesc[0].dims;
+int PillarsScatterPlugin::enqueue(
+     int batchSize, const void* const* inputs, void* const* outputs, void* workspace, cudaStream_t stream) noexcept
+ {
+  //std::cout << "start enqueue pillars scatter" << std::endl;
 
-  int in_feature_dims = input0_dims.d[1];
-  int in_channel = input0_dims.d[2];
-  const dim3 phnetDim3(512, 1, inputDesc[0].dims.d[0]);
+  int in_feature_dims = 10000;
+  int in_channel = 64;
+  const dim3 phnetDim3(512, 1, batchSize);
 
-  if (inputDesc[0].type == nvinfer1::DataType::kFLOAT)
+  // if (inputDesc[0].type == nvinfer1::DataType::kFLOAT)
+  if (1)
   {
-    cudaMemsetAsync(outputs[0], 0xFF, sizeof(float) * in_feature_dims * in_channel, stream);
+    cudaMemsetAsync(outputs[0], 0, sizeof(float) * in_feature_dims * in_channel, stream);
     pillar_scatter_kernel<<<2, phnetDim3, 0, stream>>>
     (
-      inputDesc[0].dims.d[0],
+      batchSize,
       static_cast<float const *>(inputs[0]),
       static_cast<float const *>(inputs[1]),
       static_cast<float *>(outputs[0]),
       in_feature_dims,
       in_channel,
-      _size_h,
-      _size_w
+      h,
+      w
     );
   }
   else
@@ -75,14 +69,14 @@ int PillarsScatterPlugin::enqueue(const nvinfer1::PluginTensorDesc* inputDesc, c
     cudaMemsetAsync(outputs[0], 0xFF, sizeof(__half) * in_feature_dims * in_channel, stream);
     pillar_scatter_kernel<<<2, phnetDim3, 0, stream>>>
     (
-      inputDesc[0].dims.d[0],
+      batchSize,
       static_cast<__half const *>( inputs[0]),
       static_cast<__half const *>( inputs[1]),
       static_cast<__half *>(outputs[0]),
       in_feature_dims,
       in_channel,
-      _size_h,
-      _size_w
+      h,
+      w
     );
   }
   return cudaGetLastError() != cudaSuccess;

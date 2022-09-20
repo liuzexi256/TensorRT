@@ -3,8 +3,9 @@
 
 #include "NvInferPlugin.h"
 #include "serialize.hpp"
-#include "cudnn.h"
+#include "kernel.h"
 #include "plugin.h"
+#include <cuda_runtime.h>
 #include <string>
 #include <vector>
 
@@ -13,45 +14,38 @@ namespace nvinfer1
 namespace plugin
 {
 
-class PillarsScatterPlugin : public IPluginV2DynamicExt
+class PillarsScatterPlugin : public IPluginV2Ext
 {
 public:
 
-    int _size_w;
-    int _size_h;
-    const char* mPluginNamespace;
-
     PillarsScatterPlugin(int w, int h);
 
-    PillarsScatterPlugin(const void* serialData, size_t serialLength);
+    PillarsScatterPlugin(const void* data, size_t length);
 
     ~PillarsScatterPlugin() override = default;
 
-    void deserialize(const void* data, size_t length) noexcept;
-    size_t getSerializationSize() const noexcept override;
-
-    void serialize(void* buffer) const noexcept override;
-
-    int getNbOutputs() const noexcept override;
-
-    DimsExprs getOutputDimensions(
-        int32_t outputIndex, const DimsExprs* inputs, int32_t nbInputs, IExprBuilder& exprBuilder) noexcept override;
+    int getNbOutputs() const noexcept override; 
+    
+    Dims getOutputDimensions(int index, const Dims* inputs, int nbInputDims) noexcept override;
 
     int initialize() noexcept override;
 
     void terminate() noexcept override;
 
-    size_t getWorkspaceSize(const nvinfer1::PluginTensorDesc* inputs, int nbInputs,
-        const nvinfer1::PluginTensorDesc* outputs, int nbOutputs) const noexcept override;
+    size_t getWorkspaceSize(int maxBatchSize) const noexcept override;
 
-    int enqueue(const nvinfer1::PluginTensorDesc* inputDesc, const nvinfer1::PluginTensorDesc* outputDesc,
-        const void* const* inputs, void* const* outputs, void* workspace, cudaStream_t stream) noexcept override;
+    int32_t enqueue(int32_t batchSize, void const* const* inputs, void* const* outputs, void* workspace,
+        cudaStream_t stream) noexcept override;
 
-    void configurePlugin(const nvinfer1::DynamicPluginTensorDesc* in, int nbInputs,
-                       const nvinfer1::DynamicPluginTensorDesc* out, int nbOutputs) noexcept override;
-    
-    bool supportsFormatCombination(
-        int pos, const nvinfer1::PluginTensorDesc* inOut, int nbInputs, int nbOutputs) noexcept override;
+    size_t getSerializationSize() const noexcept override;
+
+    void serialize(void* buffer) const noexcept override;
+
+    void configurePlugin(const Dims* inputDims, int nbInputs, const Dims* outputDims, int nbOutputs,
+        const DataType* inputTypes, const DataType* outputTypes, const bool* inputIsBroadcast,
+        const bool* outputIsBroadcast, PluginFormat floatFormat, int maxBatchSize) noexcept override;
+
+    bool supportsFormat(DataType type, PluginFormat format) const noexcept override;
 
     const char* getPluginType() const noexcept override;
 
@@ -59,17 +53,24 @@ public:
 
     void destroy() noexcept override;
 
-    nvinfer1::IPluginV2DynamicExt* clone() const noexcept override;
+    IPluginV2Ext* clone() const noexcept override;
 
-    nvinfer1::DataType getOutputDataType(int index, const nvinfer1::DataType* inputType, int nbInputs) const noexcept override;
+    DataType getOutputDataType(int index, const nvinfer1::DataType* inputType, int nbInputs) const noexcept override;
 
     void setPluginNamespace(const char* pluginNamespace) noexcept override;
 
     const char* getPluginNamespace() const noexcept override;
 
+    bool isOutputBroadcastAcrossBatch(int outputIndex, const bool* inputIsBroadcasted, int nbInputs) const noexcept override;
+
+    bool canBroadcastInputAcrossBatch(int inputIndex) const noexcept override;
+
 private:
-    int w;
-    int h;
+    int w = 0;
+    int h = 0;
+    int in_channel = 0;
+    int in_feature_dims = 0;
+    const char* mPluginNamespace;
     std::string mNameSpace;
 };
 
@@ -88,14 +89,14 @@ public:
 
     IPluginV2Ext* createPlugin(const char* name, const PluginFieldCollection* fc) noexcept override;
 
-    IPluginV2Ext* deserializePlugin(const char* name, const void* serialData, size_t serialLength) noexcept override;
+    IPluginV2Ext* deserializePlugin(const char* name, const void* data, size_t length) noexcept override;
 
 private:
     static PluginFieldCollection mFC;
     static std::vector<PluginField> mPluginAttributes;
+
+protected:
     std::string mNamespace;
-    int w;
-    int h;
 };
 } // namespace plugin
 } // namespace nvinfer1
