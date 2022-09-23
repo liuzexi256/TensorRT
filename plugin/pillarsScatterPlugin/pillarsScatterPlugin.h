@@ -1,12 +1,11 @@
 #ifndef TRT_PILLARS_SCATTER_PLUGIN_H
 #define TRT_PILLARS_SCATTER_PLUGIN_H
 
-#include "NvInferPlugin.h"
-#include "serialize.hpp"
-#include "cudnn.h"
-#include "plugin.h"
 #include <string>
 #include <vector>
+#include <cudnn.h>
+#include "plugin.h"
+#include "serialize.hpp"
 
 namespace nvinfer1
 {
@@ -16,11 +15,6 @@ namespace plugin
 class PillarsScatterPlugin : public IPluginV2DynamicExt
 {
 public:
-
-    int _size_w;
-    int _size_h;
-    const char* mPluginNamespace;
-
     PillarsScatterPlugin(int w, int h);
 
     PillarsScatterPlugin(const void* serialData, size_t serialLength);
@@ -28,6 +22,7 @@ public:
     ~PillarsScatterPlugin() override = default;
 
     void deserialize(const void* data, size_t length) noexcept;
+
     size_t getSerializationSize() const noexcept override;
 
     void serialize(void* buffer) const noexcept override;
@@ -68,9 +63,10 @@ public:
     const char* getPluginNamespace() const noexcept override;
 
 private:
-    int w;
-    int h;
     std::string mNameSpace;
+    const char* mPluginNamespace;
+    int _size_w;
+    int _size_h;
 };
 
 class PillarsScatterPluginCreator : public BaseCreator
@@ -94,8 +90,6 @@ private:
     static PluginFieldCollection mFC;
     static std::vector<PluginField> mPluginAttributes;
     std::string mNamespace;
-    int w;
-    int h;
 };
 } // namespace plugin
 } // namespace nvinfer1

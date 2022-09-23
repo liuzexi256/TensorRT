@@ -2,7 +2,7 @@
  * @Author: Zexi Liu
  * @Date: 2022-07-29 11:45:47
  * @LastEditors: Zexi Liu
- * @LastEditTime: 2022-08-16 13:42:03
+ * @LastEditTime: 2022-09-23 16:27:52
  * @FilePath: /TensorRT/plugin/pillarsScatterPlugin/pillarsScatterPlugin.cpp
  * @Description: 
  * 
@@ -10,12 +10,6 @@
  */
 
 #include "pillarsScatterPlugin.h"
-#include "half.h"
-#include <cstring>
-#include <cublas_v2.h>
-#include <cudnn.h>
-#include <iostream>
-#include <sstream>
 
 using namespace nvinfer1;
 using namespace plugin;
@@ -30,8 +24,6 @@ const char* PILLARS_SCATTER_PLUGIN_NAME{"pillars_scatter"};
 
 PluginFieldCollection PillarsScatterPluginCreator::mFC{};
 std::vector<PluginField> PillarsScatterPluginCreator::mPluginAttributes;
-
-//REGISTER_TENSORRT_PLUGIN(PillarsScatterPluginCreator);
 
 PillarsScatterPlugin::PillarsScatterPlugin(int w, int h)
     : _size_w(w)
@@ -173,7 +165,8 @@ IPluginV2Ext* PillarsScatterPluginCreator::createPlugin(const char* name, const 
     {
         const PluginField* fields = fc->fields;
         int nbFields = fc->nbFields;
-
+        int w = 0;
+        int h = 0;
         for (int i = 0; i < nbFields; ++i)
         {
             if (!strcmp(fields[i].name, "_size_w"))

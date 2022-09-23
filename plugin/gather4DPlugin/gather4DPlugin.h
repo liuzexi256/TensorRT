@@ -1,12 +1,11 @@
 #ifndef TRT_GATHER_D_PLUGIN_H
 #define TRT_GATHER_D_PLUGIN_H
 
-#include "NvInferPlugin.h"
-#include "serialize.hpp"
-#include "cudnn.h"
-#include "plugin.h"
 #include <string>
 #include <vector>
+#include <cudnn.h>
+#include "plugin.h"
+#include "serialize.hpp"
 
 namespace nvinfer1
 {
@@ -16,9 +15,6 @@ namespace plugin
 class Gather4DPlugin : public IPluginV2DynamicExt
 {
 public:
-
-    const char* mPluginNamespace;
-
     Gather4DPlugin();
 
     Gather4DPlugin(const void* serialData, size_t serialLength);
@@ -26,6 +22,7 @@ public:
     ~Gather4DPlugin() override = default;
 
     void deserialize(const void* data, size_t length) noexcept;
+
     size_t getSerializationSize() const noexcept override;
 
     void serialize(void* buffer) const noexcept override;
@@ -67,6 +64,7 @@ public:
 
 private:
     std::string mNameSpace;
+    const char* mPluginNamespace;
 };
 
 class Gather4DPluginCreator : public BaseCreator

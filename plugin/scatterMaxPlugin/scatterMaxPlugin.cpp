@@ -2,7 +2,7 @@
  * @Author: Zexi Liu
  * @Date: 2022-07-29 11:45:47
  * @LastEditors: Zexi Liu
- * @LastEditTime: 2022-08-16 13:40:47
+ * @LastEditTime: 2022-09-23 16:27:00
  * @FilePath: /TensorRT/plugin/scatterMaxPlugin/scatterMaxPlugin.cpp
  * @Description: 
  * 
@@ -10,12 +10,6 @@
  */
 
 #include "scatterMaxPlugin.h"
-#include "half.h"
-#include <cstring>
-#include <cublas_v2.h>
-#include <cudnn.h>
-#include <iostream>
-#include <sstream>
 
 using namespace nvinfer1;
 using namespace plugin;
@@ -30,10 +24,6 @@ const char* SCATTER_MAX_PLUGIN_NAME{"scatter_max"};
 
 PluginFieldCollection ScatterMaxPluginCreator::mFC{};
 std::vector<PluginField> ScatterMaxPluginCreator::mPluginAttributes;
-
-//REGISTER_TENSORRT_PLUGIN(ScatterMaxPluginCreator);
-
-//ScatterMaxPlugin::ScatterMaxPlugin() {}
 
 ScatterMaxPlugin::ScatterMaxPlugin(int w)
     : _size_w(w)
@@ -171,7 +161,7 @@ IPluginV2Ext* ScatterMaxPluginCreator::createPlugin(const char* name, const Plug
     {
         const PluginField* fields = fc->fields;
         int nbFields = fc->nbFields;
-
+        int w = 0;
         for (int i = 0; i < nbFields; ++i)
         {
             if (!strcmp(fields[i].name, "w"))

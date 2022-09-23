@@ -1,6 +1,4 @@
-#include <algorithm>
 #include <cuda_fp16.h>
-
 #include "scatterMaxPlugin.h"
 
 using namespace nvinfer1;
@@ -16,7 +14,6 @@ float atomicMaxFloat(float * addr, float value)
   return old;
 }
 
-///// ScatterMax Enqueue start
 template <typename Data>
 __global__
 void scatter_max_kernel_f16(
@@ -80,22 +77,16 @@ int ScatterMaxPlugin::enqueue(const nvinfer1::PluginTensorDesc* inputDesc, const
                          const void* const* inputs, void* const* outputs, void* workspace, cudaStream_t stream) noexcept
 {
   // std::cout << "start enqueue scatter max" << std::endl;
-  // std::cout << "input0.shape0 = " << inputDesc[0].dims.d[0] << std::endl;
-  // std::cout << "input0.shape1 = " << inputDesc[0].dims.d[1] << std::endl;
-  // std::cout << "input0.shape2 = " << inputDesc[0].dims.d[2] << std::endl;
-  // std::cout << "input1.shape0 = " << inputDesc[1].dims.d[0] << std::endl;
-  // std::cout << "input1.shape1 = " << inputDesc[1].dims.d[1] << std::endl;
-  // std::cout << "input1.shape2 = " << inputDesc[1].dims.d[2] << std::endl;
-
   auto const& input0_dims = inputDesc[0].dims;
-  const int batchSize = input0_dims.d[0];
+
   const int nChans = input0_dims.d[2];
   const int nDims = input0_dims.d[1];
-  const int output_size = nChans * _size_w;
+  const int batchSize = input0_dims.d[0];
   const dim3 phnetDim3(512, 1, batchSize);
+
   if (inputDesc[0].type == nvinfer1::DataType::kFLOAT)
   {
-    cudaMemsetAsync(outputs[0], 0xFF, sizeof(float) * output_size, stream);
+    cudaMemsetAsync(outputs[0], 0, sizeof(float) * nChans * _size_w, stream);
     scatter_max_kernel_f32<<<2, phnetDim3, 0, stream>>>
     (
       batchSize,
@@ -108,7 +99,7 @@ int ScatterMaxPlugin::enqueue(const nvinfer1::PluginTensorDesc* inputDesc, const
   }
   else
   {
-    cudaMemsetAsync(outputs[0], 0xFF, sizeof(__half) * output_size, stream);
+    cudaMemsetAsync(outputs[0], 0xFF, sizeof(__half) * nChans * _size_w, stream);
     scatter_max_kernel_f16<<<2, phnetDim3, 0, stream>>>
     (
       batchSize,
@@ -121,4 +112,3 @@ int ScatterMaxPlugin::enqueue(const nvinfer1::PluginTensorDesc* inputDesc, const
   }
   return cudaGetLastError() != cudaSuccess;
 }
-///// ScatterMax Enqueue end

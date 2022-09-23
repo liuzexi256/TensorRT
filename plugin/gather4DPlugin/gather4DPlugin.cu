@@ -1,12 +1,9 @@
-#include <algorithm>
 #include <cuda_fp16.h>
-
 #include "gather4DPlugin.h"
 
 using namespace nvinfer1;
 using nvinfer1::plugin::Gather4DPlugin;
 
-///// Gather4D Enqueue start
 template <typename Data>
 __global__
 void pillar_map_kernel(
@@ -43,30 +40,22 @@ int Gather4DPlugin::enqueue(const nvinfer1::PluginTensorDesc* inputDesc, const n
                          const void* const* inputs, void* const* outputs, void* workspace, cudaStream_t stream) noexcept
 {
   // std::cout << "start enqueue gather 4d" << std::endl;
-  // std::cout << "input0.shape0 = " << inputDesc[0].dims.d[0] << std::endl;
-  // std::cout << "input0.shape1 = " << inputDesc[0].dims.d[1] << std::endl;
-  // std::cout << "input0.shape2 = " << inputDesc[0].dims.d[2] << std::endl;
-  // std::cout << "input0.shape2 = " << inputDesc[0].dims.d[3] << std::endl;
-  // std::cout << "input1.shape0 = " << inputDesc[1].dims.d[0] << std::endl;
-  // std::cout << "input1.shape1 = " << inputDesc[1].dims.d[1] << std::endl;
-  // std::cout << "input1.shape2 = " << inputDesc[1].dims.d[2] << std::endl;
-  // std::cout << "input1.shape2 = " << inputDesc[1].dims.d[3] << std::endl;
-
   auto const& input0_dims = inputDesc[0].dims;
   auto const& input1_dims = inputDesc[1].dims;
 
   int in_feature_dims = input1_dims.d[1];
   int in_channel = input0_dims.d[1];
+  int batchSize = inputDesc[0].dims.d[0];
   int _size_h = input0_dims.d[2];
   int _size_w = input0_dims.d[3];
-  const dim3 phnetDim3(512, 1, inputDesc[0].dims.d[0]);
+  const dim3 phnetDim3(512, 1, batchSize);
 
   if (inputDesc[0].type == nvinfer1::DataType::kFLOAT)
   {
     cudaMemsetAsync(outputs[0], 0, sizeof(float) * in_feature_dims * in_channel, stream);
     pillar_map_kernel<<<2, phnetDim3, 0, stream>>>
     (
-        inputDesc[0].dims.d[0],
+        batchSize,
         static_cast<float const *>(inputs[0]),
         static_cast<float const *>(inputs[1]),
         static_cast<float *>(outputs[0]),
@@ -81,7 +70,7 @@ int Gather4DPlugin::enqueue(const nvinfer1::PluginTensorDesc* inputDesc, const n
     cudaMemsetAsync(outputs[0], 0, sizeof(__half) * in_feature_dims * in_channel, stream);
     pillar_map_kernel<<<2, phnetDim3, 0, stream>>>
     (
-      inputDesc[0].dims.d[0],
+      batchSize,
       static_cast<__half const *>(inputs[0]),
       static_cast<__half const *>(inputs[1]),
       static_cast<__half *>(outputs[0]),
@@ -93,4 +82,3 @@ int Gather4DPlugin::enqueue(const nvinfer1::PluginTensorDesc* inputDesc, const n
   }
   return cudaGetLastError() != cudaSuccess;
 }
-///// Gather4D Enqueue end

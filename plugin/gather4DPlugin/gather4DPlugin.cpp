@@ -2,7 +2,7 @@
  * @Author: Zexi Liu
  * @Date: 2022-07-29 11:45:47
  * @LastEditors: Zexi Liu
- * @LastEditTime: 2022-08-16 18:38:42
+ * @LastEditTime: 2022-09-23 16:28:41
  * @FilePath: /TensorRT/plugin/gather4DPlugin/gather4DPlugin.cpp
  * @Description: 
  * 
@@ -10,12 +10,6 @@
  */
 
 #include "gather4DPlugin.h"
-#include "half.h"
-#include <cstring>
-#include <cublas_v2.h>
-#include <cudnn.h>
-#include <iostream>
-#include <sstream>
 
 using namespace nvinfer1;
 using namespace plugin;
@@ -30,8 +24,6 @@ const char* GATHER_4D_PLUGIN_NAME{"gather_4d"};
 
 PluginFieldCollection Gather4DPluginCreator::mFC{};
 std::vector<PluginField> Gather4DPluginCreator::mPluginAttributes;
-
-//REGISTER_TENSORRT_PLUGIN(PillarsScatterPluginCreator);
 
 Gather4DPlugin::Gather4DPlugin()
 {
@@ -90,9 +82,6 @@ size_t Gather4DPlugin::getWorkspaceSize(const nvinfer1::PluginTensorDesc* inputs
 void Gather4DPlugin::configurePlugin(const nvinfer1::DynamicPluginTensorDesc* in, int nbInputs,
     const nvinfer1::DynamicPluginTensorDesc* out, int nbOutputs) noexcept
 {
-//   assert(nbOutputs == 1);
-//   assert(nbInputs == 3);
-//   assert(mType == inputs[0].desc.type);
 }
 
 bool Gather4DPlugin::supportsFormatCombination(
