@@ -86,7 +86,7 @@ int ScatterMaxPlugin::enqueue(const nvinfer1::PluginTensorDesc* inputDesc, const
 
   if (inputDesc[0].type == nvinfer1::DataType::kFLOAT)
   {
-    cudaMemsetAsync(outputs[0], 0, sizeof(float) * nChans * _size_w, stream);
+    cudaMemsetAsync(outputs[0], 0xFF, sizeof(float) * nChans * _size_w, stream);
     scatter_max_kernel_f32<<<2, phnetDim3, 0, stream>>>
     (
       batchSize,
